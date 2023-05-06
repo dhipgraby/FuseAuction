@@ -5,10 +5,15 @@ import "./AuctionStorage.sol";
 
 contract FuseAuction is AuctionStorage {
     uint256 internal _currentAuctionId;
-    uint256 internal _currentAuctionsSold;
+    uint256 internal _currentAuctionsSold;    
 
     receive() external payable {
         revert ErrorMessage("Not payable receive");
+    }
+
+     constructor() {
+        escrow = new Escrow();
+        emit EscrowDeployed(escrow, address(this));
     }
 
     /// @notice Creates a new Auction from a given market item.
@@ -68,8 +73,7 @@ contract FuseAuction is AuctionStorage {
         uint256 _bid = msg.value;
         address payable _bidder = payable(_msgSender());
 
-        if (_msgSender() == _a.highestBidder) revert ErrorMessage("Already highest bidder!");
-        if (two != false) revert ErrorMessage("Requires uint value: 2");
+        if (_msgSender() == _a.highestBidder) revert ErrorMessage("Already highest bidder!");        
 
         if (_a.highestBidder != address(0)) {
             pendingReturns[_a.highestBidder] += _a.highestBid;
@@ -80,6 +84,29 @@ contract FuseAuction is AuctionStorage {
         _a.highestBidder = _bidder;
 
         emit HighestBidIncrease(_a.auctionId, _a.highestBidder, _a.highestBid);
+    }
+
+    /// @notice Method used to fetch all current live timed auctions on the marketplace.
+    /// @return MarketAuction Returns an bytes32 array of all the current active auctions.
+    function fetchMarketAuctions()
+        external
+        view
+        returns (MarketAuction[] memory)
+    {
+        uint256 auctionCount = _currentAuctionId;
+        uint256 unsoldAuctionCount = _currentAuctionId - _currentAuctionsSold;
+        uint256 currentIndex = 0;
+
+        MarketAuction[] memory _auctions = new MarketAuction[](
+            unsoldAuctionCount
+        );
+        for (uint256 i = 0; i < auctionCount; i++) {
+            bytes32 currentId = bytes32(i + 1);
+            MarketAuction memory currentAuction = auctionsMapping[currentId];
+            _auctions[currentIndex] = currentAuction;
+            currentIndex += 1;
+        }
+        return _auctions;
     }
 
 
