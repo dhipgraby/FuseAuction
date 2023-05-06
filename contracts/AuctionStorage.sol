@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 /// @author @dhipgraby - OnChain Solutions.
 
 /// @notice This is the storage contract containing all the global variables, custom errors, events,
-///         and modifiers inherited by the FuseAuction smart contract.
+///         and modifiers inherited by the marketplace smart contract.
 
 contract AuctionStorage is
     ERC721Holder,
@@ -25,6 +25,18 @@ contract AuctionStorage is
     /// @notice Escrow contract that holds the seller funds and pendingReturns.
     /// @return escrow The Escrow contract address.
     Escrow public escrow;
+
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes4 internal constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+    bytes4 internal constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
+    uint16 public serviceFee;
+
+    /// ------------------------------- ORDER -------------------------------
+    /// --------------- MODIFIERS ---------------
+    /// --------------- ORDER ---------------
+    /// --------------- ORDER ---------------
+    /// --------------- ORDER ---------------
+    /// --------------- ORDER ---------------
 
     /// ------------------------------- MODIFIERS -------------------------------
 
@@ -69,6 +81,25 @@ contract AuctionStorage is
         _;
     }
 
+    /// @dev Modifier will validate if the caller is the seller.
+    /// @param seller The account to validate.
+    modifier isAuth(address payable seller) {
+        if (seller != _msgSender()) revert NotAuth();
+        _;
+    }
+
+    modifier isApprovedOrApprovedForAll(
+        uint256 itemId,
+        address nftContract,
+        address seller
+    ) {
+        if (
+            IERC721(nftContract).getApproved(itemId) == address(this) ||
+            IERC721(nftContract).isApprovedForAll(seller, address(this))
+        ) revert notApproved();
+        _;
+    }
+
     /// ------------------------------- STRUCTS -------------------------------
 
     struct MarketAuction {
@@ -76,9 +107,18 @@ contract AuctionStorage is
         uint256 itemId;
         uint256 auctionEndTime;
         uint256 highestBid;
+        address nftContract;
         address highestBidder;
         address payable seller;
         bool ended;
+    }
+
+    struct MarketAuctionInput {
+        uint256 itemId;
+        uint256 biddingTime;
+        uint256 minimumBid;
+        address nftContract;
+        address payable seller;
     }
 
     /// ------------------------------- EVENTS -------------------------------
@@ -110,6 +150,61 @@ contract AuctionStorage is
     /// @param escrow Indexed - The contract address of the escrow.
     /// @param operator Indexed - The account authorized to interact with the escrow contract.
     event EscrowDeployed(Escrow indexed escrow, address indexed operator);
+
+    /// @notice Emitted on withdrawals from the escrow contract.
+    /// @param seller Indexed - The receiver of the funds.
+    event WithdrawFromEscrow(address indexed seller);
+
+    /// @notice Emitted on withdrawals from the pending returns in escrow.
+    /// @param to Indexed - The receiver of the funds.
+    /// @param amount The withdraw amount.
+    event WithdrawPendingReturns(address indexed to, uint256 amount);
+
+    /// @notice Emitted when an auction is not sold.
+    /// @param auctionId Indexed - The auctionId.
+    /// @param itemId Indexed - The itemId of this auction.
+    event NoBuyer(bytes32 indexed auctionId, uint256 indexed itemId);
+
+    /// @notice Emitted when an auction is removed.
+    /// @param auctionId Indexed - The auctionId.
+    /// @param itemId Indexed - The itemId of this auction.
+    /// @param highestBidder Indexed - The winner of the auction.
+    /// @param highestBid The highestBid of this auction.
+    /// @param timestamp The timestamp when this event was emitted.
+    event AuctionRemoved(
+        bytes32 indexed auctionId,
+        uint256 indexed itemId,
+        address indexed highestBidder,
+        uint256 highestBid,
+        uint256 timestamp
+    );
+
+    /// @notice Emitted when the serviceFee transaction is completed.
+    /// @param serviceWallet Indexed - The account to receive the fee amount.
+    /// @param amount The transacted fee amount.
+    event TransferServiceFee(address indexed serviceWallet, uint256 amount);
+
+    /// @notice Emitted when an auction is claimed.
+    /// @param auctionId Indexed - The auctionId.
+    /// @param itemId Indexed - The itemId of this auction.
+    /// @param winner Indexed - The winner of the auction.
+    /// @param amount The amount of the bid.
+    event AuctionClaimed(
+        bytes32 indexed auctionId,
+        uint256 indexed itemId,
+        address indexed winner,
+        uint256 amount
+    );
+
+    /// @notice Emitted after an asset has been purchased and transfered to the new owner
+    /// @param to Indexed - The receiver of the ntf.
+    /// @param collection Indexed - The NFT smart contract address.
+    /// @param tokenId Indexed - The tokenId.
+    event AssetSent(
+        address indexed to,
+        address indexed collection,
+        uint256 indexed tokenId
+    );
 
     /// ------------------------------- MAPPINGS -------------------------------
 
@@ -145,6 +240,12 @@ contract AuctionStorage is
     /// @param id The Id of the market Item.
     error NotActive(bytes32 id);
 
+    /// @notice Thrown if caller is not authorized.
+    error NotAuth();
+
+    /// @notice Thrown if caller is not approve.
+    error notApproved();
+
     /// ------------------------------- FUNCTIONS -------------------------------
 
     /// @notice Internal method used to deposit the salesAmount into the Escrow contract.
@@ -155,5 +256,80 @@ contract AuctionStorage is
     {
         escrow.deposit{value: value}(tokenOwner);
         emit DepositToEscrow(tokenOwner, value);
+    }
+
+    /// @notice Allows a seller to withdraw their sales revenue from the escrow contract.
+    /// @param seller The seller of the market item.
+    /// @dev Only the seller can check their own escrowed balance.
+    function withdrawSellerRevenue(address payable seller)
+        public
+        isAuth(seller)
+    {
+        _withdrawFromEscrow(seller);
+    }
+
+    /// @notice Internal method used to withdraw the salesAmount from the Escrow contract.
+    /// @param seller The address of the seller.
+    /// @dev Will also reset pendingReturn to 0.
+    function _withdrawFromEscrow(address payable seller) internal {
+        pendingReturns[seller] = 0;
+        escrow.withdraw(seller);
+        emit WithdrawFromEscrow(seller);
+    }
+
+    /// @notice Internal method used to send the nft asset to the new token Owner.
+    /// @param auctionId The current auction to retrive data from.
+    /// @param receiver The address to receiver the nft.
+    function _sendAsset(bytes32 auctionId, address receiver) internal {
+        IERC721(auctionsMapping[auctionId].nftContract).safeTransferFrom(
+            auctionsMapping[auctionId].seller,
+            receiver,
+            auctionsMapping[auctionId].itemId
+        );
+
+        emit AssetSent(
+            receiver,
+            auctionsMapping[auctionId].nftContract,
+            auctionsMapping[auctionId].itemId
+        );
+    }
+
+    /// @notice Method used to calculate the serviceFee to transfer.
+    /// @param _priceInWei the salesPrice.
+    /// @return sellerAmount The amount to send to the seller.
+    /// @return totalFeeAmount Includes service fee seller side, and service fee buyer side.
+    function _calculateFees(uint256 _priceInWei)
+        internal
+        view
+        returns (uint256 sellerAmount, uint256 totalFeeAmount)
+    {
+        uint256 serviceFeeAmount = (serviceFee * _priceInWei) / 10000;
+        totalFeeAmount = (serviceFeeAmount * 2);
+        sellerAmount = (_priceInWei - totalFeeAmount);
+        return (sellerAmount, totalFeeAmount);
+    }
+
+    function approveAuction(uint256 itemId, address nftContract) external {
+        IERC721(nftContract).approve(address(this), itemId);
+    }
+
+    function setApprovalForAllAuction(address nftContract, bool approved)
+        external
+    {
+        IERC721(nftContract).setApprovalForAll(address(this), approved);
+    }
+
+    function rescue(
+        address collection,
+        uint256[] calldata tokenIds,
+        address receiver
+    ) external onlyRole(ADMIN_ROLE) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            IERC721(collection).safeTransferFrom(
+                address(this),
+                receiver,
+                tokenIds[i]
+            );
+        }
     }
 }
