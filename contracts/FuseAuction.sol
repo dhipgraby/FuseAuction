@@ -19,17 +19,12 @@ contract FuseAuction is AuctionStorage {
         emit EscrowDeployed(escrow, address(this));
     }
 
-    /// @notice Creates a new Auction from a given market item.    
+    /// @notice Creates a new Auction from a given item.    
     /// @dev Restricted by modifiers { isAuthorized, isNotActive,isApprovedOrApprovedForAll }.
     function createMarketAuction(MarketAuctionInput calldata input)
         public
-        isAuthorized(input.itemId, input.nftContract, input.seller)
+        isAuthorized(input.itemId, input.nftContract)
         isNotActive(input.itemId, input.nftContract)
-        isApprovedOrApprovedForAll(
-            input.itemId,
-            input.nftContract,
-            input.seller
-        )
         returns (bytes32 _auctionId)
     {
         if (input.biddingTime == 0 || input.minimumBid == 0) {
@@ -43,12 +38,12 @@ contract FuseAuction is AuctionStorage {
         _a.auctionEndTime = block.timestamp + input.biddingTime;
         _a.highestBid = input.minimumBid;
         _a.nftContract = input.nftContract;
-        _a.seller = input.seller;
+        _a.seller = payable(_msgSender());
         _a.ended = false;
 
         isActiveTokenId[input.nftContract][input.itemId] = true;
 
-        emit MarketAuctionCreated(_auctionId, input.seller);
+        emit MarketAuctionCreated(_auctionId, _msgSender());
 
         return _auctionId;
     }
@@ -62,8 +57,11 @@ contract FuseAuction is AuctionStorage {
         costs(auctionId)
         isLiveAuction(auctionId)
         minBid(auctionId)
-    {
+    {    
+
         MarketAuction storage _a = auctionsMapping[auctionId];
+        if(_a.seller == _msgSender()) revert bidderIsSeller();
+
         uint256 _bid = msg.value;
         address payable _bidder = payable(_msgSender());
 
@@ -81,7 +79,7 @@ contract FuseAuction is AuctionStorage {
         emit HighestBidIncrease(_a.auctionId, _a.highestBidder, _a.highestBid);
     }
 
-    /// @notice Method used to fetch all current live timed auctions on the marketplace.
+    /// @notice Method used to fetch all current live timed auctions on the Auctions.
     /// @return MarketAuction Returns an bytes32 array of all the current active auctions.
     function fetchMarketAuctions()
         external
@@ -124,8 +122,7 @@ contract FuseAuction is AuctionStorage {
 
     /// @notice Public method to finalise an auction.
     /// @param auctionId The auctionId to claim.
-    /// @dev The winner of an auction is able to end the auction they won, by claiming the auction,
-    ///      the winner will receive their nft and the payment is transfered to the escrow contract.
+    /// @dev The winner of an auction is able to end the auction they won, by claiming the auction
     /// @return bool Returns true is auction has a highest bidder, returns false if the auction had no bids.
     function claimAuction(bytes32 auctionId)
         public
@@ -153,12 +150,13 @@ contract FuseAuction is AuctionStorage {
             _INTERFACE_ID_ERC2981
         );
 
-        if (!success) {
-            _sendPaymentToEscrow(_a.seller, _a.highestBid);
-            _sendAsset(auctionId, _a.highestBidder);
-        } else {
-            _sendAsset(auctionId, _a.highestBidder);
+        if (!success) {            
+            if(_transferFunds(auctionId) != true) revert transferFunds();            
+        } else {            
+            if(_transferRoyaltiesAndFunds(auctionId) != true) revert transferRoyaltiesFunds();                  
         }
+        
+        _sendAsset(auctionId, _a.highestBidder);
 
         emit AuctionClaimed(
             _a.auctionId,
@@ -189,16 +187,4 @@ contract FuseAuction is AuctionStorage {
         }
     }
 
-    /// @notice Method to get an marketAuction.
-    /// @param auctionId The bytes32 auctionId to query.
-    /// @return marketAuction Returns the MarketAuction.
-    function getMarketAuction(bytes32 auctionId)
-        external
-        view
-        onlyRole(ADMIN_ROLE)
-        returns (MarketAuction memory marketAuction)
-    {
-        MarketAuction memory a = auctionsMapping[auctionId];
-        return a;
-    }
 }

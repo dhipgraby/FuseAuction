@@ -14,8 +14,6 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 /// @author @dhipgraby - OnChain Solutions.
 
 /// @notice This is the storage contract containing all the global variables, custom errors, events,
-///         and modifiers inherited by the marketplace smart contract.
-
 contract AuctionStorage is
     ERC721Holder,
     Context,
@@ -42,12 +40,8 @@ contract AuctionStorage is
 
     /// @dev Modifier will validate if the caller is authorized.
     /// @param itemId The tokenId of the nft to validate.
-    modifier isAuthorized(
-        uint256 itemId,
-        address nftContract,
-        address payable seller
-    ) {
-        if (seller != IERC721(nftContract).ownerOf(itemId))
+    modifier isAuthorized(uint256 itemId, address nftContract) {
+        if (_msgSender() != IERC721(nftContract).ownerOf(itemId))
             revert NotTokenOwner();
         _;
     }
@@ -60,7 +54,7 @@ contract AuctionStorage is
 
     modifier costs(bytes32 id) {
         MarketAuction memory _auction = auctionsMapping[id];
-        if (msg.value < _auction.highestBid)
+        if (msg.value <= _auction.highestBid)
             revert LowValue(_auction.highestBid);
         _;
     }
@@ -88,18 +82,6 @@ contract AuctionStorage is
         _;
     }
 
-    modifier isApprovedOrApprovedForAll(
-        uint256 itemId,
-        address nftContract,
-        address seller
-    ) {
-        if (
-            IERC721(nftContract).getApproved(itemId) == address(this) ||
-            IERC721(nftContract).isApprovedForAll(seller, address(this))
-        ) revert notApproved();
-        _;
-    }
-
     /// ------------------------------- STRUCTS -------------------------------
 
     struct MarketAuction {
@@ -118,7 +100,6 @@ contract AuctionStorage is
         uint256 biddingTime;
         uint256 minimumBid;
         address nftContract;
-        address payable seller;
     }
 
     /// ------------------------------- EVENTS -------------------------------
@@ -131,7 +112,7 @@ contract AuctionStorage is
         address indexed seller
     );
 
-    /// @notice Emitted when a market item has been sold and funds are deposited into escrow.
+    /// @notice Emitted when a item has been sold and funds are deposited into escrow.
     /// @param seller Indexed - The receiver of the funds.
     /// @param value The salesprice of the nft, minus the servicefee and royalty amount.
     event DepositToEscrow(address indexed seller, uint256 value);
@@ -146,7 +127,7 @@ contract AuctionStorage is
         uint256 amount
     );
 
-    /// @notice Emitted on marketplace deployment, escrow is deployed by the constructor .
+    /// @notice Emitted on deployment, escrow is deployed by the constructor .
     /// @param escrow Indexed - The contract address of the escrow.
     /// @param operator Indexed - The account authorized to interact with the escrow contract.
     event EscrowDeployed(Escrow indexed escrow, address indexed operator);
@@ -206,6 +187,11 @@ contract AuctionStorage is
         uint256 indexed tokenId
     );
 
+    /// @notice Emitted when the serviceFee transaction is completed.
+    /// @param receiver Indexed - The account to receive the royalty amount.
+    /// @param amount The transacted royalty amount.
+    event TransferRoyalty(address indexed receiver, uint256 amount);
+
     /// ------------------------------- MAPPINGS -------------------------------
 
     /// @notice Maps auctionsIds with MarketAuction struct.
@@ -222,6 +208,9 @@ contract AuctionStorage is
     /// @notice Thrown if caller is not authorized or owner of the token.
     error NotTokenOwner();
 
+    /// @notice Thrown if bidder is seller.
+    error bidderIsSeller();
+
     /// @notice Thrown if 0 is passed as a value.
     error NoZeroValues();
 
@@ -236,8 +225,8 @@ contract AuctionStorage is
     /// @param expected The expected value.
     error LowValue(uint256 expected);
 
-    /// @notice Thrown if the marketItem is not an active market item.
-    /// @param id The Id of the market Item.
+    /// @notice Thrown if not active auction
+    /// @param id The Id of the Item.
     error NotActive(bytes32 id);
 
     /// @notice Thrown if caller is not authorized.
@@ -246,25 +235,33 @@ contract AuctionStorage is
     /// @notice Thrown if caller is not approve.
     error notApproved();
 
+    /// @notice Thrown with a string message.
+    /// @param failed Error message string describes what transaction failed.
+    error FailedTransaction(string failed);
+
+    error transferFunds();
+
+    error transferRoyaltiesFunds();
+
     /// ------------------------------- FUNCTIONS -------------------------------
 
     /// @notice Internal method used to deposit the salesAmount into the Escrow contract.
-    /// @param tokenOwner The address of the seller of the MarketOrder.
+    /// @param tokenOwner The address of the seller.
     /// @param value The priceInWei of the listed order.
-    function _sendPaymentToEscrow(address payable tokenOwner, uint256 value)
-        internal
-    {
+    function _sendPaymentToEscrow(
+        address payable tokenOwner,
+        uint256 value
+    ) internal {
         escrow.deposit{value: value}(tokenOwner);
         emit DepositToEscrow(tokenOwner, value);
     }
 
     /// @notice Allows a seller to withdraw their sales revenue from the escrow contract.
-    /// @param seller The seller of the market item.
+    /// @param seller The seller of the item.
     /// @dev Only the seller can check their own escrowed balance.
-    function withdrawSellerRevenue(address payable seller)
-        public
-        isAuth(seller)
-    {
+    function withdrawSellerRevenue(
+        address payable seller
+    ) public isAuth(seller) {
         _withdrawFromEscrow(seller);
     }
 
@@ -298,25 +295,13 @@ contract AuctionStorage is
     /// @param _priceInWei the salesPrice.
     /// @return sellerAmount The amount to send to the seller.
     /// @return totalFeeAmount Includes service fee seller side, and service fee buyer side.
-    function _calculateFees(uint256 _priceInWei)
-        internal
-        view
-        returns (uint256 sellerAmount, uint256 totalFeeAmount)
-    {
+    function _calculateFees(
+        uint256 _priceInWei
+    ) internal view returns (uint256 sellerAmount, uint256 totalFeeAmount) {
         uint256 serviceFeeAmount = (serviceFee * _priceInWei) / 10000;
         totalFeeAmount = (serviceFeeAmount * 2);
         sellerAmount = (_priceInWei - totalFeeAmount);
         return (sellerAmount, totalFeeAmount);
-    }
-
-    function approveAuction(uint256 itemId, address nftContract) external {
-        IERC721(nftContract).approve(address(this), itemId);
-    }
-
-    function setApprovalForAllAuction(address nftContract, bool approved)
-        external
-    {
-        IERC721(nftContract).setApprovalForAll(address(this), approved);
     }
 
     function rescue(
@@ -331,5 +316,37 @@ contract AuctionStorage is
                 tokenIds[i]
             );
         }
+    }
+
+    /// @notice Internal method used to transfer the royalties and service fee.
+    function _transferRoyaltiesAndFunds(
+        bytes32 auctionId
+    ) internal returns (bool) {
+        MarketAuction memory item = auctionsMapping[auctionId];
+
+        (address _royaltyReceiver, uint256 _royaltyAmount) = IERC2981(
+            item.nftContract
+        ).royaltyInfo(item.itemId, item.highestBid);
+
+        uint256 _toSeller = (item.highestBid - _royaltyAmount);
+
+        (bool _success, ) = item.seller.call{value: _toSeller}("");
+        if (!_success) revert FailedTransaction("Funds");
+
+        (bool _s, ) = _royaltyReceiver.call{value: _royaltyAmount}("");
+        if (!_s) revert FailedTransaction("Royalty");
+
+        return true;
+    }
+
+    /// @notice Internal method used to transfer the royalties and service fee.
+    function _transferFunds(bytes32 auctionId) internal returns (bool) {
+        MarketAuction memory item = auctionsMapping[auctionId];
+
+        uint256 _toSeller = item.highestBid;
+
+        (bool _success, ) = item.seller.call{value: _toSeller}("");
+        if (!_success) revert FailedTransaction("Funds");
+        return true;
     }
 }
