@@ -37,18 +37,25 @@ contract TokenEscrow is Ownable {
         address payee,
         address tokenAddress,
         uint256 amount
-    ) public onlyOwner {
-        IERC20(tokenAddress).transferFrom(payee, address(this), amount);
+    ) public onlyOwner returns (bool) {
+        bool success = IERC20(tokenAddress).transferFrom(
+            payee,
+            address(this),
+            amount
+        );
         _deposits[payee][tokenAddress] += amount;
+        return success;
     }
 
-    function withdraw(
-        address payee,
-        address tokenAddress        
-    ) public onlyOwner {
+    function withdraw(address payee, address tokenAddress)
+        public
+        onlyOwner
+        returns (bool)
+    {
         uint256 amount = _deposits[payee][tokenAddress];
         require(amount > 0, "Insufficient funds");
         _deposits[payee][tokenAddress] -= amount;
-        IERC20(tokenAddress).transfer(payee, amount);
+        bool success = IERC20(tokenAddress).transfer(payee, amount);
+        return success;
     }
 }

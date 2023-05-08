@@ -68,7 +68,7 @@ contract AuctionStorage is
 
     modifier tokenCosts(bytes32 id, uint256 amount) {
         MarketAuction memory _auction = auctionsMapping[id];
-        if (amount <= _auction.highestBid) revert LowValue(_auction.highestBid);
+        if (amount <= _auction.highestBid) revert LowAmount(_auction.highestBid,amount);
         _;
     }
 
@@ -80,14 +80,6 @@ contract AuctionStorage is
         _;
     }
 
-    /// @dev Modifier will validate that the bid is above current highest bid.
-    /// @param auctionId The id of the auction to bid on.
-    modifier minBid(bytes32 auctionId) {
-        MarketAuction memory a = auctionsMapping[auctionId];
-        if (msg.value <= a.highestBid) revert LowValue(a.highestBid);
-        _;
-    }
-
     /// @dev Modifier will validate if the caller is the seller.
     /// @param seller The account to validate.
     modifier isAuth(address payable seller) {
@@ -96,8 +88,7 @@ contract AuctionStorage is
     }
 
     modifier supportsERC20(address contractAddress) {
-        if (IERC165(contractAddress).supportsInterface(_INTERFACE_ID_ERC20))
-            revert tokenNotSupported();
+        if(!IERC165(contractAddress).supportsInterface(_INTERFACE_ID_ERC20)) revert tokenNotSupported();
         _;
     }
 
@@ -254,6 +245,11 @@ contract AuctionStorage is
     /// @param expected The expected value.
     error LowValue(uint256 expected);
 
+    /// @notice Thrown if the Token amount is to low to transact.
+    /// @param expected The expected value.
+    /// @param amount The current value.
+    error LowAmount(uint256 expected,uint256 amount);
+
     /// @notice Thrown if not active auction
     /// @param id The Id of the Item.
     error NotActive(bytes32 id);
@@ -274,6 +270,8 @@ contract AuctionStorage is
 
     /// @notice Thrown error if ERC20 token address is not supported.
     error tokenNotSupported();
+
+    error funsNotTransfered();
 
     // endregion
 
@@ -296,8 +294,9 @@ contract AuctionStorage is
         address payable userAddress,
         address tokenContract,
         uint256 amount
-    ) internal {
-        tokenEscrow.deposit(userAddress, tokenContract, amount);
+    ) internal returns (bool) {
+        bool success = tokenEscrow.deposit(userAddress, tokenContract, amount);
+        return success;
     }
 
     /// @notice Allows a seller to withdraw their sales revenue from the escrow contract.
@@ -325,8 +324,10 @@ contract AuctionStorage is
     function withdrawSellerFunds(address payable seller, address tokenContract)
         public
         isAuth(seller)
+        returns (bool)
     {
-        _withdrawFromTokenEscrow(seller, tokenContract);
+        bool success = _withdrawFromTokenEscrow(seller, tokenContract);
+        return success;
     }
 
     /// @notice Internal method used to withdraw the salesAmount from the TokenEscrow contract.
@@ -334,9 +335,11 @@ contract AuctionStorage is
     /// @dev Will also reset pendingReturn to 0.
     function _withdrawFromTokenEscrow(address seller, address tokenContract)
         internal
+        returns (bool)
     {
         pendingFunds[tokenContract][_msgSender()] = 0;
-        tokenEscrow.withdraw(seller, tokenContract);
+        bool success = tokenEscrow.withdraw(seller, tokenContract);
+        return success;
     }
 
     /// @notice Internal method used to send the nft asset to the new token Owner.

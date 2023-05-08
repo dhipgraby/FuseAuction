@@ -59,12 +59,11 @@ contract FuseAuction is AuctionStorage {
         uint256 biddingTime,
         uint256 minimumBid,
         address nftContract,
-        address TokenAdrress
+        address tokenAdrress
     )
         public
         isAuthorized(itemId, nftContract)
         isNotActive(itemId, nftContract)
-        supportsERC20(TokenAdrress)
         returns (bytes32 _auctionId)
     {
         if (biddingTime == 0 || minimumBid == 0) {
@@ -78,7 +77,7 @@ contract FuseAuction is AuctionStorage {
         _a.auctionEndTime = block.timestamp + biddingTime;
         _a.highestBid = minimumBid;
         _a.nftContract = nftContract;
-        _a.ERC20Contract = TokenAdrress;
+        _a.ERC20Contract = tokenAdrress;
         _a.seller = payable(_msgSender());
         _a.isERC20 = true;
         _a.ended = false;
@@ -92,13 +91,12 @@ contract FuseAuction is AuctionStorage {
 
     /// @notice Executes a new bid on a auctionId.
     /// @param auctionId The auctionId to bid on.
-    /// @dev Restricted by modifiers { costs, isLiveAuction, minBid }.
+    /// @dev Restricted by modifiers { costs, isLiveAuction }.
     function bid(bytes32 auctionId)
         public
         payable
         costs(auctionId)
         isLiveAuction(auctionId)
-        minBid(auctionId)
     {
         MarketAuction storage _a = auctionsMapping[auctionId];
         if (_a.seller == _msgSender()) revert bidderIsSeller();
@@ -122,13 +120,12 @@ contract FuseAuction is AuctionStorage {
 
     /// @notice Executes a new bid on a auctionId.
     /// @param auctionId The auctionId to bid on.
-    /// @dev Restricted by modifiers { costs, isLiveAuction, minBid }.
+    /// @dev Restricted by modifiers { costs, isLiveAuction }.
     function bidERC20(bytes32 auctionId, uint256 bidAmount)
         public
         payable
         tokenCosts(auctionId, bidAmount)
         isLiveAuction(auctionId)
-        minBid(auctionId)
     {
         MarketAuction storage _a = auctionsMapping[auctionId];
 
@@ -142,7 +139,13 @@ contract FuseAuction is AuctionStorage {
 
         if (_a.highestBidder != address(0)) {
             pendingFunds[_a.ERC20Contract][_a.highestBidder] += _a.highestBid;
-            _sendPaymentToTokenEscrow(_bidder, _a.ERC20Contract, bidAmount);
+            if (
+                !_sendPaymentToTokenEscrow(
+                    payable(_a.highestBidder),
+                    _a.ERC20Contract,
+                    bidAmount
+                )
+            ) revert funsNotTransfered();
         }
 
         _a.highestBid = bidAmount;
@@ -209,7 +212,12 @@ contract FuseAuction is AuctionStorage {
 
         if (_amount > 0) {
             pendingFunds[currentAuction.ERC20Contract][_msgSender()] = 0;
-            withdrawSellerRevenue(payable(_msgSender()));
+            if (
+                !withdrawSellerFunds(
+                    payable(_msgSender()),
+                    currentAuction.ERC20Contract
+                )
+            ) revert funsNotTransfered();
         }
         return true;
     }
@@ -230,7 +238,9 @@ contract FuseAuction is AuctionStorage {
         if (currentAuction.ended) revert NotActive(currentAuction.auctionId);
 
         currentAuction.ended = true;
-        isActiveTokenId[currentAuction.nftContract][currentAuction.itemId] = false;
+        isActiveTokenId[currentAuction.nftContract][
+            currentAuction.itemId
+        ] = false;
 
         if (currentAuction.highestBidder == address(0)) {
             _removeAuction(currentAuction.auctionId);
@@ -252,7 +262,8 @@ contract FuseAuction is AuctionStorage {
                 if (_transferFunds(auctionId) != true) revert transferFunds();
             }
         } else {
-            if (_transferRoyaltiesAndFunds(auctionId) != true) revert transferRoyaltiesFunds();         
+            if (_transferRoyaltiesAndFunds(auctionId) != true)
+                revert transferRoyaltiesFunds();
         }
 
         _sendAsset(auctionId, currentAuction.highestBidder);
