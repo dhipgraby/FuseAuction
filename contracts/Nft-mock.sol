@@ -14,6 +14,7 @@ contract NftMock is ERC721, AccessControl {
     constructor() ERC721("Nft-mock", "MOCK") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
+        safeMint(msg.sender);
     }
 
     function safeMint(address to) public onlyRole(MINTER_ROLE) {

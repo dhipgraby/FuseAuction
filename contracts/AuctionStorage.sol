@@ -295,7 +295,11 @@ contract AuctionStorage is
         address tokenContract,
         uint256 amount
     ) internal returns (bool) {
-        bool success = tokenEscrow.deposit(userAddress, tokenContract, amount);
+          bool success = IERC20(tokenContract).transferFrom(
+            userAddress,
+            address(tokenEscrow),
+            amount
+        );        
         return success;
     }
 

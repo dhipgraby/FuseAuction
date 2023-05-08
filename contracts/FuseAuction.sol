@@ -14,7 +14,7 @@ contract FuseAuction is AuctionStorage {
     constructor() {
         serviceFee = 200;
         escrow = new Escrow();
-        tokenEscrow = new TokenEscrow();
+        tokenEscrow = new TokenEscrow();        
         emit EscrowDeployed(escrow, tokenEscrow, address(this));
     }
 
@@ -137,16 +137,25 @@ contract FuseAuction is AuctionStorage {
         if (_msgSender() == _a.highestBidder)
             revert ErrorMessage("Already highest bidder!");
 
-        if (_a.highestBidder != address(0)) {
-            pendingFunds[_a.ERC20Contract][_a.highestBidder] += _a.highestBid;
+        if (_a.highestBidder != address(0)) {            
             if (
                 !_sendPaymentToTokenEscrow(
                     payable(_a.highestBidder),
                     _a.ERC20Contract,
-                    bidAmount
+                    _a.highestBid
                 )
             ) revert funsNotTransfered();
+
+            pendingFunds[_a.ERC20Contract][_a.highestBidder] += _a.highestBid;
         }
+
+        bool success = IERC20(_a.ERC20Contract).transferFrom(
+            _msgSender(),
+            address(this),
+            bidAmount
+        );
+
+        if(!success) revert funsNotTransfered();
 
         _a.highestBid = bidAmount;
         _a.highestBidder = _bidder;

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\coding\\fuse-auctions\\backend\\contracts\\AuctionStorage.sol": {
-      "lastModificationDate": 1683473601904,
-      "contentHash": "6110be03867192dde5aea209f2c3a527",
+      "lastModificationDate": 1683533829970,
+      "contentHash": "bb2a88f2e576d8ee5a158975d701713a",
       "sourceName": "contracts/AuctionStorage.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -29,14 +29,15 @@
         }
       },
       "imports": [
-        "../node_modules/@openzeppelin/contracts/utils/Context.sol",
-        "../node_modules/@openzeppelin/contracts/utils/escrow/Escrow.sol",
-        "../node_modules/@openzeppelin/contracts/interfaces/IERC20.sol",
-        "../node_modules/@openzeppelin/contracts/interfaces/IERC2981.sol",
-        "../node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol",
-        "../node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
-        "../node_modules/@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol",
-        "../node_modules/@openzeppelin/contracts/access/AccessControlEnumerable.sol"
+        "@openzeppelin/contracts/utils/Context.sol",
+        "@openzeppelin/contracts/utils/escrow/Escrow.sol",
+        "@openzeppelin/contracts/interfaces/IERC20.sol",
+        "@openzeppelin/contracts/interfaces/IERC2981.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol",
+        "@openzeppelin/contracts/access/AccessControlEnumerable.sol",
+        "./TokenEscrow.sol"
       ],
       "versionPragmas": [
         "^0.8.17"
@@ -772,8 +773,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\FuseAuction.sol": {
-      "lastModificationDate": 1683386323774,
-      "contentHash": "9eaf41ec0de17692f9edeaff7f664ec1",
+      "lastModificationDate": 1683533824445,
+      "contentHash": "9273b00b0ba1d2ac10ed853355646a4b",
       "sourceName": "contracts/FuseAuction.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -889,8 +890,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\Nft-mock.sol": {
-      "lastModificationDate": 1683107671685,
-      "contentHash": "db43729d32bb949794665073cd7c5ec6",
+      "lastModificationDate": 1683533858712,
+      "contentHash": "6e1d0a607cf5dc21d8132ce44384a396",
       "sourceName": "contracts/Nft-mock.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -960,6 +961,159 @@
       ],
       "artifacts": [
         "Counters"
+      ]
+    },
+    "D:\\coding\\fuse-auctions\\backend\\contracts\\TokenEscrow.sol": {
+      "lastModificationDate": 1683533848827,
+      "contentHash": "d5fa7eef3f2ddbc85ece74c1f4bcacb7",
+      "sourceName": "contracts/TokenEscrow.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/Address.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TokenEscrow"
+      ]
+    },
+    "D:\\coding\\fuse-auctions\\backend\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
+      "lastModificationDate": 1683386139600,
+      "contentHash": "834a0dde221759af42b030253315b086",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC20.sol",
+        "./extensions/IERC20Metadata.sol",
+        "../../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ERC20"
+      ]
+    },
+    "D:\\coding\\fuse-auctions\\backend\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
+      "lastModificationDate": 1683386141415,
+      "contentHash": "909ab67fc5c25033fe6cd364f8c056f9",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20Metadata"
+      ]
+    },
+    "D:\\coding\\fuse-auctions\\backend\\contracts\\GLDToken.sol": {
+      "lastModificationDate": 1683533892667,
+      "contentHash": "629229a4fde5773f13d09dbd9785357c",
+      "sourceName": "contracts/GLDToken.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "GLDToken"
       ]
     }
   }
