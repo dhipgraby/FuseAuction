@@ -889,45 +889,6 @@
         "IERC721Metadata"
       ]
     },
-    "D:\\coding\\fuse-auctions\\backend\\contracts\\Nft-mock.sol": {
-      "lastModificationDate": 1683533858712,
-      "contentHash": "6e1d0a607cf5dc21d8132ce44384a396",
-      "sourceName": "contracts/Nft-mock.sol",
-      "solcConfig": {
-        "version": "0.8.17",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/access/AccessControl.sol",
-        "@openzeppelin/contracts/utils/Counters.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "NftMock"
-      ]
-    },
     "D:\\coding\\fuse-auctions\\backend\\node_modules\\@openzeppelin\\contracts\\utils\\Counters.sol": {
       "lastModificationDate": 1683386138506,
       "contentHash": "74654e3ae5d7f39555055dfe244dab7a",
@@ -964,8 +925,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\TokenEscrow.sol": {
-      "lastModificationDate": 1683533848827,
-      "contentHash": "d5fa7eef3f2ddbc85ece74c1f4bcacb7",
+      "lastModificationDate": 1683536053713,
+      "contentHash": "430f8da1ef53897b0ee58262d4e7f3b5",
       "sourceName": "contracts/TokenEscrow.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -996,7 +957,7 @@
         "@openzeppelin/contracts/token/ERC20/IERC20.sol"
       ],
       "versionPragmas": [
-        "^0.8.0"
+        "^0.8.17"
       ],
       "artifacts": [
         "TokenEscrow"
@@ -1079,8 +1040,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\GLDToken.sol": {
-      "lastModificationDate": 1683533892667,
-      "contentHash": "629229a4fde5773f13d09dbd9785357c",
+      "lastModificationDate": 1683536046770,
+      "contentHash": "2f0880d763cfd7b3f28d606e5f23f26c",
       "sourceName": "contracts/GLDToken.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -1110,10 +1071,49 @@
         "@openzeppelin/contracts/access/Ownable.sol"
       ],
       "versionPragmas": [
-        "^0.8.0"
+        "^0.8.17"
       ],
       "artifacts": [
         "GLDToken"
+      ]
+    },
+    "D:\\coding\\fuse-auctions\\backend\\contracts\\NFTMock.sol": {
+      "lastModificationDate": 1683536006266,
+      "contentHash": "7a68096d8a4e76cdd81a047666dab6a8",
+      "sourceName": "contracts/NFTMock.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/access/AccessControl.sol",
+        "@openzeppelin/contracts/utils/Counters.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.17"
+      ],
+      "artifacts": [
+        "NFTMock"
       ]
     }
   }
