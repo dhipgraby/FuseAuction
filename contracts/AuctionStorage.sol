@@ -323,14 +323,14 @@ contract AuctionStorage is
         emit WithdrawFromEscrow(seller);
     }
 
-    /// @notice Allows a seller to withdraw their sales revenue from the escrow contract.
+    /// @notice Allows a seller to withdraw their funds from tokenEscrow.
     /// @param seller The seller of the item.
     /// @dev Only the seller can check their own escrowed balance.
-    function withdrawSellerFunds(
+    function withdrawPendingTokens(
         address payable seller,
         address tokenContract
     ) public isAuth(seller) returns (bool) {
-        bool success = _withdrawFromTokenEscrow(seller, tokenContract);
+        bool success = _withdrawFromTokenEscrow(seller, address(tokenContract));
         return success;
     }
 

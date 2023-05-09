@@ -198,8 +198,8 @@ contract FuseAuction is AuctionStorage {
         return true;
     }
 
-    /// @notice For users who lost an auction.This will allow them to withdraw their pending returns from the escrow.
-    /// @dev This method will withdraw all the users funds from the escrow contract.
+    /// @notice For users who lost an auction.This will allow them to withdraw their pending returns from the TokenEscrow.
+    /// @dev This method will withdraw the user funds from the escrow contract.
     /// @return success if transaction is completed succewssfully.
     function withdrawPendingFunds(
         bytes32 auctionId
@@ -212,14 +212,14 @@ contract FuseAuction is AuctionStorage {
             _msgSender()
         ];
 
-        if (_amount > 0) {
-            pendingFunds[currentAuction.ERC20Contract][_msgSender()] = 0;
+        if (_amount > 0) {            
             if (
-                !withdrawSellerFunds(
+                !withdrawPendingTokens(
                     payable(_msgSender()),
                     currentAuction.ERC20Contract
                 )
             ) revert funsNotTransfered();
+            pendingFunds[currentAuction.ERC20Contract][_msgSender()] = 0;
         }
         return true;
     }
