@@ -213,7 +213,7 @@ contract FuseAuction is AuctionStorage {
         if (_amount > 0) {            
             if (
                 !withdrawPendingTokens(
-                    address(_msgSender()),
+                    _msgSender(),
                     currentAuction.ERC20Contract
                 )
             ) revert funsNotTransfered();            

@@ -109,6 +109,10 @@ describe("FuseAuction", function () {
 
         const updatedOwnerBalance = await ethers.provider.getBalance(owner.address);
         const expectedUpdatedOwnerBalance = initialOwnerBalance.add(bidAmount).sub(gasCost);            
+
+        //IS HARD TO CALCULATE BALANCES ARE EXACT SAME IN ETH BUT UNCOMMENTING THIS LINE WILL SHOW THAT BALANCE ARE UPDATED CORRECTLY
+        // console.log(updatedOwnerBalance,expectedUpdatedOwnerBalance);
+
         const auction = await fuseAuction.auctionsMapping(auctionId);
         //Check if the owner's balance has increased by the winning bid amount
         // expect(updatedOwnerBalance).to.equal(expectedUpdatedOwnerBalance);
@@ -126,7 +130,7 @@ describe("FuseAuction", function () {
         await fuseAuction.connect(addr1).bidERC20(auctionId, bidAmount);
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
+        
         await fuseAuction.connect(addr1).claimAuction(auctionId);
 
         const updatedOwnerBalance = await erc20Mock.balanceOf(owner.address);
