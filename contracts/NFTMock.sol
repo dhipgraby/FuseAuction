@@ -21,7 +21,12 @@ contract NFTMock is ERC721, AccessControl {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
+    }   
+    function mint(address to,uint256 tokenId) public onlyRole(MINTER_ROLE) {        
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
     }
+
 
     // The following functions are overrides required by Solidity.
 

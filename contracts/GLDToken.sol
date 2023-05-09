@@ -8,12 +8,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract GLDToken is ERC20, Ownable {
     uint256 public constant MAX_SUPPLY = 1000000 * (10**18); // 1,000,000 tokens with 18 decimals
 
-    constructor(uint256 initialSupply) ERC20("Gold", "GLD") {
-        require(
-            initialSupply <= MAX_SUPPLY,
-            "GLDToken: Initial supply exceeds max supply"
-        );
-        _mint(msg.sender, initialSupply);
+    constructor() ERC20("Gold", "GLD") {                
+        _mint(msg.sender, MAX_SUPPLY);
     }
 
     function mint(address to, uint256 amount) public onlyOwner {

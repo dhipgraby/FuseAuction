@@ -14,7 +14,7 @@ contract FuseAuction is AuctionStorage {
     constructor() {
         serviceFee = 200;
         escrow = new Escrow();
-        tokenEscrow = new TokenEscrow();        
+        tokenEscrow = new TokenEscrow();
         emit EscrowDeployed(escrow, tokenEscrow, address(this));
     }
 
@@ -92,12 +92,9 @@ contract FuseAuction is AuctionStorage {
     /// @notice Executes a new bid on a auctionId.
     /// @param auctionId The auctionId to bid on.
     /// @dev Restricted by modifiers { costs, isLiveAuction }.
-    function bid(bytes32 auctionId)
-        public
-        payable
-        costs(auctionId)
-        isLiveAuction(auctionId)
-    {
+    function bid(
+        bytes32 auctionId
+    ) public payable costs(auctionId) isLiveAuction(auctionId) {
         MarketAuction storage _a = auctionsMapping[auctionId];
         if (_a.seller == _msgSender()) revert bidderIsSeller();
 
@@ -121,12 +118,10 @@ contract FuseAuction is AuctionStorage {
     /// @notice Executes a new bid on a auctionId.
     /// @param auctionId The auctionId to bid on.
     /// @dev Restricted by modifiers { costs, isLiveAuction }.
-    function bidERC20(bytes32 auctionId, uint256 bidAmount)
-        public
-        payable
-        tokenCosts(auctionId, bidAmount)
-        isLiveAuction(auctionId)
-    {
+    function bidERC20(
+        bytes32 auctionId,
+        uint256 bidAmount
+    ) public payable tokenCosts(auctionId, bidAmount) isLiveAuction(auctionId) {
         MarketAuction storage _a = auctionsMapping[auctionId];
 
         if (!_a.isERC20) revert tokenNotSupported();
@@ -137,7 +132,7 @@ contract FuseAuction is AuctionStorage {
         if (_msgSender() == _a.highestBidder)
             revert ErrorMessage("Already highest bidder!");
 
-        if (_a.highestBidder != address(0)) {            
+        if (_a.highestBidder != address(0)) {
             if (
                 !_sendPaymentToTokenEscrow(
                     payable(_a.highestBidder),
@@ -155,7 +150,7 @@ contract FuseAuction is AuctionStorage {
             bidAmount
         );
 
-        if(!success) revert funsNotTransfered();
+        if (!success) revert funsNotTransfered();
 
         _a.highestBid = bidAmount;
         _a.highestBidder = _bidder;
@@ -207,10 +202,9 @@ contract FuseAuction is AuctionStorage {
     /// @notice For users who lost an auction.This will allow them to withdraw their pending returns from the escrow.
     /// @dev This method will withdraw all the users funds from the escrow contract.
     /// @return success if transaction is completed succewssfully.
-    function withdrawPendingFunds(bytes32 auctionId)
-        external
-        returns (bool success)
-    {
+    function withdrawPendingFunds(
+        bytes32 auctionId
+    ) external returns (bool success) {
         MarketAuction memory currentAuction = auctionsMapping[auctionId];
         if (pendingFunds[currentAuction.ERC20Contract][_msgSender()] == 0)
             revert ErrorMessage("No pending Returns!");
@@ -235,11 +229,9 @@ contract FuseAuction is AuctionStorage {
     /// @param auctionId The auctionId to claim.
     /// @dev The winner of an auction is able to end the auction they won, by claiming the auction
     /// @return bool Returns true is auction has a highest bidder, returns false if the auction had no bids.
-    function claimAuction(bytes32 auctionId)
-        public
-        isLiveAuction(auctionId)
-        returns (bool)
-    {
+    function claimAuction(
+        bytes32 auctionId
+    ) public isLiveAuction(auctionId) returns (bool) {
         MarketAuction storage currentAuction = auctionsMapping[auctionId];
 
         if (block.timestamp < currentAuction.auctionEndTime)
@@ -304,5 +296,8 @@ contract FuseAuction is AuctionStorage {
 
             delete (auctionsMapping[auctionId]);
         }
+    }
+    function getAuctionId() public view returns (bytes32) {
+        return bytes32(_currentAuctionId);
     }
 }
