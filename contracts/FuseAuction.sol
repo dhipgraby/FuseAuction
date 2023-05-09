@@ -134,8 +134,7 @@ contract FuseAuction is AuctionStorage {
 
         if (_a.highestBidder != address(0)) {
             if (
-                !_sendPaymentToTokenEscrow(
-                    payable(_a.highestBidder),
+                !_sendPaymentToTokenEscrow(                    
                     _a.ERC20Contract,
                     _a.highestBid
                 )
@@ -146,7 +145,7 @@ contract FuseAuction is AuctionStorage {
 
         bool success = IERC20(_a.ERC20Contract).transferFrom(
             _msgSender(),
-            address(this),
+            address(this),  
             bidAmount
         );
 

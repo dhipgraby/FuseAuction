@@ -68,7 +68,8 @@ contract AuctionStorage is
 
     modifier tokenCosts(bytes32 id, uint256 amount) {
         MarketAuction memory _auction = auctionsMapping[id];
-        if (amount <= _auction.highestBid) revert LowAmount(_auction.highestBid,amount);
+        if (amount <= _auction.highestBid)
+            revert LowAmount(_auction.highestBid, amount);
         _;
     }
 
@@ -88,7 +89,8 @@ contract AuctionStorage is
     }
 
     modifier supportsERC20(address contractAddress) {
-        if(!IERC165(contractAddress).supportsInterface(_INTERFACE_ID_ERC20)) revert tokenNotSupported();
+        if (!IERC165(contractAddress).supportsInterface(_INTERFACE_ID_ERC20))
+            revert tokenNotSupported();
         _;
     }
 
@@ -248,7 +250,7 @@ contract AuctionStorage is
     /// @notice Thrown if the Token amount is to low to transact.
     /// @param expected The expected value.
     /// @param amount The current value.
-    error LowAmount(uint256 expected,uint256 amount);
+    error LowAmount(uint256 expected, uint256 amount);
 
     /// @notice Thrown if not active auction
     /// @param id The Id of the Item.
@@ -280,9 +282,10 @@ contract AuctionStorage is
     /// @notice Internal method used to deposit the salesAmount into the Escrow contract.
     /// @param tokenOwner The address of the seller.
     /// @param value The priceInWei of the listed order.
-    function _sendPaymentToEscrow(address payable tokenOwner, uint256 value)
-        internal
-    {
+    function _sendPaymentToEscrow(
+        address payable tokenOwner,
+        uint256 value
+    ) internal {
         escrow.deposit{value: value}(tokenOwner);
         emit DepositToEscrow(tokenOwner, value);
     }
@@ -291,25 +294,23 @@ contract AuctionStorage is
     /// @param tokenContract The address of ERC20 contract.
     /// @param amount The amount of the listed order.
     function _sendPaymentToTokenEscrow(
-        address payable userAddress,
         address tokenContract,
         uint256 amount
     ) internal returns (bool) {
-          bool success = IERC20(tokenContract).transferFrom(
-            userAddress,
+        bool success = IERC20(tokenContract).transfer(
             address(tokenEscrow),
             amount
-        );        
+        );
+        tokenEscrow.deposit(_msgSender(), address(tokenContract), amount);
         return success;
     }
 
     /// @notice Allows a seller to withdraw their sales revenue from the escrow contract.
     /// @param seller The seller of the item.
     /// @dev Only the seller can check their own escrowed balance.
-    function withdrawSellerRevenue(address payable seller)
-        public
-        isAuth(seller)
-    {
+    function withdrawSellerRevenue(
+        address payable seller
+    ) public isAuth(seller) {
         _withdrawFromEscrow(seller);
     }
 
@@ -325,11 +326,10 @@ contract AuctionStorage is
     /// @notice Allows a seller to withdraw their sales revenue from the escrow contract.
     /// @param seller The seller of the item.
     /// @dev Only the seller can check their own escrowed balance.
-    function withdrawSellerFunds(address payable seller, address tokenContract)
-        public
-        isAuth(seller)
-        returns (bool)
-    {
+    function withdrawSellerFunds(
+        address payable seller,
+        address tokenContract
+    ) public isAuth(seller) returns (bool) {
         bool success = _withdrawFromTokenEscrow(seller, tokenContract);
         return success;
     }
@@ -337,12 +337,12 @@ contract AuctionStorage is
     /// @notice Internal method used to withdraw the salesAmount from the TokenEscrow contract.
     /// @param tokenContract The address of the ERC20 contract.
     /// @dev Will also reset pendingReturn to 0.
-    function _withdrawFromTokenEscrow(address seller, address tokenContract)
-        internal
-        returns (bool)
-    {
-        pendingFunds[tokenContract][_msgSender()] = 0;
-        bool success = tokenEscrow.withdraw(seller, tokenContract);
+    function _withdrawFromTokenEscrow(
+        address seller,
+        address tokenContract
+    ) internal returns (bool) {
+        pendingFunds[tokenContract][seller] = 0;
+        bool success = tokenEscrow.withdraw(seller, address(tokenContract));
         return success;
     }
 
@@ -367,11 +367,9 @@ contract AuctionStorage is
     /// @param _priceInWei the salesPrice.
     /// @return sellerAmount The amount to send to the seller.
     /// @return totalFeeAmount Includes service fee seller side, and service fee buyer side.
-    function _calculateFees(uint256 _priceInWei)
-        internal
-        view
-        returns (uint256 sellerAmount, uint256 totalFeeAmount)
-    {
+    function _calculateFees(
+        uint256 _priceInWei
+    ) internal view returns (uint256 sellerAmount, uint256 totalFeeAmount) {
         uint256 serviceFeeAmount = (serviceFee * _priceInWei) / 10000;
         totalFeeAmount = (serviceFeeAmount * 2);
         sellerAmount = (_priceInWei - totalFeeAmount);
@@ -393,10 +391,9 @@ contract AuctionStorage is
     }
 
     /// @notice Internal method used to transfer the royalties and service fee.
-    function _transferRoyaltiesAndFunds(bytes32 auctionId)
-        internal
-        returns (bool)
-    {
+    function _transferRoyaltiesAndFunds(
+        bytes32 auctionId
+    ) internal returns (bool) {
         MarketAuction memory currentAuction = auctionsMapping[auctionId];
 
         (address _royaltyReceiver, uint256 _royaltyAmount) = IERC2981(
@@ -448,7 +445,7 @@ contract AuctionStorage is
         uint256 _toSeller = item.highestBid;
 
         bool _success = IERC20(item.ERC20Contract).transfer(
-            _msgSender(),
+            item.seller,
             _toSeller
         );
         if (!_success) revert FailedTransaction("Funds");
