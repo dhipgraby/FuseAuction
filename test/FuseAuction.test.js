@@ -192,9 +192,9 @@ describe("FuseAuction", function () {
             //ADDR1 WITHDRAW PENDING TOKEN FUNDS
             await fuseAuction.connect(addr1).withdrawPendingFunds(auctionId);
 
-            // const addr1_afterWithdraw = await erc20Mock.balanceOf(addr1.address);
+            const addr1_afterWithdraw = await erc20Mock.balanceOf(addr1.address);
 
-            // expect(addr1_beforeWithdraw).to.equal(addr1_afterWithdraw);
+            expect(addr1_beforeWithdraw).to.equal(addr1_afterWithdraw);
         });
     });
 });

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\coding\\fuse-auctions\\backend\\contracts\\AuctionStorage.sol": {
-      "lastModificationDate": 1683647338893,
-      "contentHash": "8af96ee4a6565dee69d0c3e824046d72",
+      "lastModificationDate": 1683661360401,
+      "contentHash": "aa7bbfe4070044d531d0f91e0dab45e0",
       "sourceName": "contracts/AuctionStorage.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -773,8 +773,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\FuseAuction.sol": {
-      "lastModificationDate": 1683647286203,
-      "contentHash": "8f6b599b8f3bf85796197880e94f6950",
+      "lastModificationDate": 1683661425230,
+      "contentHash": "4aaa0a227503c8dccf234bb266ffe234",
       "sourceName": "contracts/FuseAuction.sol",
       "solcConfig": {
         "version": "0.8.17",

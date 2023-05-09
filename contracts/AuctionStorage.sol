@@ -294,6 +294,7 @@ contract AuctionStorage is
     /// @param tokenContract The address of ERC20 contract.
     /// @param amount The amount of the listed order.
     function _sendPaymentToTokenEscrow(
+        address _highestBidder,
         address tokenContract,
         uint256 amount
     ) internal returns (bool) {
@@ -301,7 +302,7 @@ contract AuctionStorage is
             address(tokenEscrow),
             amount
         );
-        tokenEscrow.deposit(_msgSender(), address(tokenContract), amount);
+        tokenEscrow.deposit(_highestBidder, address(tokenContract), amount);
         return success;
     }
 
@@ -323,14 +324,14 @@ contract AuctionStorage is
         emit WithdrawFromEscrow(seller);
     }
 
-    /// @notice Allows a seller to withdraw their funds from tokenEscrow.
+    /// @notice Allows a bidder to withdraw their funds from tokenEscrow.
     /// @param seller The seller of the item.
     /// @dev Only the seller can check their own escrowed balance.
     function withdrawPendingTokens(
-        address payable seller,
+        address seller,
         address tokenContract
-    ) public isAuth(seller) returns (bool) {
-        bool success = _withdrawFromTokenEscrow(seller, address(tokenContract));
+    ) public returns (bool) {
+        bool success = _withdrawFromTokenEscrow(seller, tokenContract);
         return success;
     }
 
@@ -340,9 +341,9 @@ contract AuctionStorage is
     function _withdrawFromTokenEscrow(
         address seller,
         address tokenContract
-    ) internal returns (bool) {
-        pendingFunds[tokenContract][seller] = 0;
-        bool success = tokenEscrow.withdraw(seller, address(tokenContract));
+    ) internal returns (bool) {        
+        bool success = tokenEscrow.withdraw(seller, tokenContract);
+        if(success) pendingFunds[tokenContract][seller] = 0;
         return success;
     }
 
@@ -361,19 +362,6 @@ contract AuctionStorage is
             auctionsMapping[auctionId].nftContract,
             auctionsMapping[auctionId].itemId
         );
-    }
-
-    /// @notice Method used to calculate the serviceFee to transfer.
-    /// @param _priceInWei the salesPrice.
-    /// @return sellerAmount The amount to send to the seller.
-    /// @return totalFeeAmount Includes service fee seller side, and service fee buyer side.
-    function _calculateFees(
-        uint256 _priceInWei
-    ) internal view returns (uint256 sellerAmount, uint256 totalFeeAmount) {
-        uint256 serviceFeeAmount = (serviceFee * _priceInWei) / 10000;
-        totalFeeAmount = (serviceFeeAmount * 2);
-        sellerAmount = (_priceInWei - totalFeeAmount);
-        return (sellerAmount, totalFeeAmount);
     }
 
     function rescue(
@@ -452,8 +440,12 @@ contract AuctionStorage is
         return true;
     }
 
-    function getBalance(address account) public view returns (uint256) {
-        return account.balance;
+   function depositsOf(address payee, address tokenAddress)
+        public
+        view
+        returns (uint256)
+    {
+        return tokenEscrow.depositsOf(payee,tokenAddress);
     }
 
     // endregion

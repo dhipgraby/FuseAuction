@@ -134,7 +134,8 @@ contract FuseAuction is AuctionStorage {
 
         if (_a.highestBidder != address(0)) {
             if (
-                !_sendPaymentToTokenEscrow(                    
+                !_sendPaymentToTokenEscrow(  
+                    _a.highestBidder,              
                     _a.ERC20Contract,
                     _a.highestBid
                 )
@@ -205,21 +206,17 @@ contract FuseAuction is AuctionStorage {
         bytes32 auctionId
     ) external returns (bool success) {
         MarketAuction memory currentAuction = auctionsMapping[auctionId];
-        if (pendingFunds[currentAuction.ERC20Contract][_msgSender()] == 0)
-            revert ErrorMessage("No pending Returns!");
+        if (pendingFunds[currentAuction.ERC20Contract][_msgSender()] == 0) revert ErrorMessage("No pending Returns!");
 
-        uint256 _amount = pendingFunds[currentAuction.ERC20Contract][
-            _msgSender()
-        ];
+        uint256 _amount = pendingFunds[currentAuction.ERC20Contract][_msgSender()];
 
         if (_amount > 0) {            
             if (
                 !withdrawPendingTokens(
-                    payable(_msgSender()),
+                    address(_msgSender()),
                     currentAuction.ERC20Contract
                 )
-            ) revert funsNotTransfered();
-            pendingFunds[currentAuction.ERC20Contract][_msgSender()] = 0;
+            ) revert funsNotTransfered();            
         }
         return true;
     }
@@ -298,5 +295,15 @@ contract FuseAuction is AuctionStorage {
     }
     function getAuctionId() public view returns (bytes32) {
         return bytes32(_currentAuctionId);
+    }
+
+    
+    /// @notice Check pending tokens funds from token Escrow contract    
+    function checkPendingFunds(
+        bytes32 auctionId
+    ) public view returns (uint256) {
+        MarketAuction memory currentAuction = auctionsMapping[auctionId];    
+        uint256 _amount = pendingFunds[currentAuction.ERC20Contract][_msgSender()];
+        return _amount;
     }
 }
