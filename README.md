@@ -20,38 +20,34 @@ FuseAuction is a decentralized auction platform built on Ethereum that allows us
 
 ## Installation 📦
 Clone the repository:
-bash
-
 <pre>
 git clone https://github.com/yourusername/FuseAuction.git
-Change into the directory and install dependencies:
-bash
 </pre>
+
+Change into the directory and install dependencies:
 
 <pre>
 cd FuseAuction
 npm install
-Run the Hardhat local Ethereum node:
-bash
 </pre>
 
 <pre>
 npx hardhat node
-Compile the contracts:
-bash
 </pre>
+
+### Compile the contracts:
 
 <pre>
 npx hardhat compile
-Deploy the contracts:
-bash
-</pre>
 
+</pre>
+### Deploy the contracts:
 <pre>
 npx hardhat run scripts/deploy.js --network localhost
-Running Tests 🧪
-Run the tests using Hardhat:
 </pre>
+
+### Running Tests 🧪
+Run the tests using Hardhat:
 
 <pre>
 npx hardhat test
