@@ -8,7 +8,6 @@ FuseAuction is a decentralized auction platform built on Ethereum that allows us
 - Usage
 - Functions
 - Events
-- License
 
 ## Features ✨
 
