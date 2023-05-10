@@ -19,12 +19,12 @@ module.exports = {
   allowUnlimitedContractSize: true,
   networks: {
     localhost: {
+      url: 'http://127.0.0.1:8545',
       gasPrice: "auto",
       accounts: {
-        mnemonic:
-          "test test test test test test test test test test test junk",
-        accountsBalance: "10000000000000000000000",
+        mnemonic: "test test test test test test test test test test test junk",
       },
+      accountsBalance: "10000000000000000000000",
     },
     hardhat: {
       gasPrice: "auto",

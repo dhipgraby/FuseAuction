@@ -773,8 +773,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\FuseAuction.sol": {
-      "lastModificationDate": 1683661425230,
-      "contentHash": "4aaa0a227503c8dccf234bb266ffe234",
+      "lastModificationDate": 1683675876428,
+      "contentHash": "9f7ae69ae532d0825ea83d043a18d520",
       "sourceName": "contracts/FuseAuction.sol",
       "solcConfig": {
         "version": "0.8.17",
