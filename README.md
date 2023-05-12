@@ -41,8 +41,14 @@ npx hardhat compile
 
 </pre>
 ### Deploy the contracts:
+To testnet using Ganache or any other local network
 <pre>
 npx hardhat run scripts/deploy.js --network localhost
+</pre>
+
+To Fuse Spark testnet
+<pre>
+npx hardhat run scripts/deploy.js --network fuse
 </pre>
 
 ### Running Tests 🧪
@@ -53,6 +59,14 @@ npx hardhat test
 </pre>
 
 ## Usage 📚
+
+**  Before using 📝 **
+
+- Mint nft from Deployer address
+- ApproveForAll Auction contract address in NFT contract
+- Send ERC20 to each bidder addresses you wish
+- Approve spend amount from each bidder address to Auction contract, so it can move the ERC20 tokens. 
+
 ** Creating an auction **
 To create an auction, call the createNativeAuction or createERC20Auction function, passing in the following parameters:
 

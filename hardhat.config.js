@@ -18,7 +18,7 @@ module.exports = {
   },
   allowUnlimitedContractSize: true,
   networks: {
-    localhost: {
+    ganache: {
       url: 'http://127.0.0.1:8545',
       gasPrice: "auto",
       accounts: {
@@ -33,6 +33,10 @@ module.exports = {
           "test test test test test test test test test test test junk",
         accountsBalance: "10000000000000000000000",
       },
+    },
+    fuse: {
+      accounts: [`${process.env.DEPLOYER_PRIVKEY}`],
+      url: `https://rpc.fusespark.io`,
     },
     /* ETH_MAINNET: {
       accounts: [`${process.env.PRIVATE_KEY}`],

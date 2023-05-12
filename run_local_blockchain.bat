@@ -1,0 +1,1 @@
+ganache-cli -m "test test test test test test test test test test test junk" --db D:\blockchains\auction
