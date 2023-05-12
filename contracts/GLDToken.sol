@@ -6,13 +6,14 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract GLDToken is ERC20, Ownable {
-    uint256 public constant MAX_SUPPLY = 1000000 * (10**18); // 1,000,000 tokens with 18 decimals
+    uint256 public constant MAX_SUPPLY = 1000000 * (10 ** 18); // 1,000,000 tokens with 18 decimals
 
-    constructor() ERC20("Gold", "GLD") {                
-        _mint(msg.sender, MAX_SUPPLY);
+    constructor() ERC20("Gold", "GLD") {
+        uint256 initialAmount = 1000000;
+        _mint(msg.sender, initialAmount);
     }
 
-    function mint(address to, uint256 amount) public onlyOwner {
+    function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 

@@ -1040,8 +1040,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\GLDToken.sol": {
-      "lastModificationDate": 1683556797033,
-      "contentHash": "29333e35b7aa6bdb2d79290e55632237",
+      "lastModificationDate": 1683892990311,
+      "contentHash": "eec4cb2dfb5a2609082f39150c3cbd2b",
       "sourceName": "contracts/GLDToken.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -1078,8 +1078,8 @@
       ]
     },
     "D:\\coding\\fuse-auctions\\backend\\contracts\\NFTMock.sol": {
-      "lastModificationDate": 1683557907197,
-      "contentHash": "88737b59d3d901d2dbfc7c5523970075",
+      "lastModificationDate": 1683893066819,
+      "contentHash": "452cd5e7efa00eeccc65e4a56190db0a",
       "sourceName": "contracts/NFTMock.sol",
       "solcConfig": {
         "version": "0.8.17",
