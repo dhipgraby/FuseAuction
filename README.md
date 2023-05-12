@@ -62,7 +62,7 @@ npx hardhat test
 
 **Before using: 🔍**
 
-- Mint nft from Deployer address
+- Mint nft from any address
 - ApproveForAll Auction contract address in NFT contract
 - Send ERC20 to each bidder addresses you wish
 - Approve spend amount from each bidder address to Auction contract, so it can move the ERC20 tokens. 
