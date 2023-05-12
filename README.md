@@ -60,14 +60,14 @@ npx hardhat test
 
 ## Usage 📚
 
-**  Before using 📝 **
+**Before using: 🔍**
 
 - Mint nft from Deployer address
 - ApproveForAll Auction contract address in NFT contract
 - Send ERC20 to each bidder addresses you wish
 - Approve spend amount from each bidder address to Auction contract, so it can move the ERC20 tokens. 
 
-** Creating an auction **
+**Creating an auction**
 To create an auction, call the createNativeAuction or createERC20Auction function, passing in the following parameters:
 
 itemId: The ID of the NFT you want to auction
@@ -112,3 +112,11 @@ auctionId: The ID of the auction you want to claim
 - WithdrawPendingReturns
 - AuctionClaimed
 - AuctionRemoved
+
+## React Dapp Template 🎮
+
+You can use this React Dapp to test contracts. Just replace contract addresses under hooks/contracts/ContractAddresses.js
+
+[Fuse Auction Dapp](https://github.com/dhipgraby/Fuse-Auction-Dapp)
+
+
